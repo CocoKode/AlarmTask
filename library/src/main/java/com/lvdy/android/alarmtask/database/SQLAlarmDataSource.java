@@ -34,7 +34,7 @@ public class SQLAlarmDataSource extends SQLiteOpenHelper implements IAlarmDataSo
                     COLUMN_ALARM_ACTION + " TEXT NOT NULL" +
                     " )";
 
-    public SQLAlarmDataSource(Context context) {
+    SQLAlarmDataSource(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 

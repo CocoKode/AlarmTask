@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.lvdy.android.alarmtask.Logger;
 import com.lvdy.android.alarmtask.database.DataManager;
 
@@ -17,6 +19,8 @@ import java.util.Locale;
 import static android.content.Context.ALARM_SERVICE;
 
 class AlarmStateManager {
+
+    private static final String INTENT_NAME_ALARM_ID = "alarm_id";
 
     static void registerInstance(Context context, Alarm instance) {
         DataManager.getInstance(context.getApplicationContext()).addAlarm(instance);
@@ -32,7 +36,7 @@ class AlarmStateManager {
     }
 
     static void handleIntent(Context context, Intent intent) {
-        long alarmId = intent.getLongExtra("alarm_id", -1);
+        long alarmId = intent.getLongExtra(INTENT_NAME_ALARM_ID, -1);
         Alarm instance = DataManager.getInstance(context.getApplicationContext()).queryAlarmById(alarmId);
 
         if (instance == null) {
@@ -42,8 +46,8 @@ class AlarmStateManager {
         deleteInstanceAndUpdateParent(context, instance);
 
         Intent notify = new Intent(instance.getAlarmAction());
-//        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
-//        localBroadcastManager.sendBroadcast(notify);
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
+        localBroadcastManager.sendBroadcast(notify);
     }
 
     private static void deleteInstanceAndUpdateParent(Context context, Alarm instance) {
@@ -62,7 +66,7 @@ class AlarmStateManager {
 
     private static Intent createStateChangeIntent(Context context, Alarm instance) {
         Intent intent = Alarm.createIntent(context, AlarmReceiver.class);
-        intent.putExtra("alarm_id", instance.getId());
+        intent.putExtra(INTENT_NAME_ALARM_ID, instance.getId());
         return intent;
     }
 
@@ -106,7 +110,7 @@ class AlarmStateManager {
     }
 
     private static SimpleDateFormat datefromat = new SimpleDateFormat("yyyy年MM月dd日HH时mm分ss秒", Locale.CHINA);
-    public static String convertMills2UTC(long millis) {
+    private static String convertMills2UTC(long millis) {
         return datefromat.format(new Date(millis));
     }
 }

@@ -13,11 +13,7 @@ public class Alarm {
         this(null, time, 0, action);
     }
 
-    protected Alarm createInstanceAfter(Calendar time) {
-        Calendar nextInstanceTime = getNextAlarmTime(time);
-        Alarm nextAlarm = new Alarm(this.id, nextInstanceTime.getTimeInMillis(), this.period, this.alarmAction);
-        return nextAlarm;
-    }
+
 
     private Long id;
     private long time;
@@ -49,6 +45,12 @@ public class Alarm {
 
     public void setAlarmAction(String alarmAction) {
         this.alarmAction = alarmAction;
+    }
+
+    protected Alarm createInstanceAfter(Calendar time) {
+        Calendar nextInstanceTime = getNextAlarmTime(time);
+        Alarm nextAlarm = new Alarm(this.id, nextInstanceTime.getTimeInMillis(), this.period, this.alarmAction);
+        return nextAlarm;
     }
 
     public Calendar getNextAlarmTime(Calendar currentTime) {
