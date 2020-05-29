@@ -6,8 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.lvdy.android.alarmtask.Logger;
 import com.lvdy.android.alarmtask.alarm.Alarm;
+import com.lvdy.android.alarmtask.alarm.AlarmTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +45,7 @@ public class SQLAlarmDataSource extends SQLiteOpenHelper implements IAlarmDataSo
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        Logger.d("Database updated from " + oldVersion + " to " + newVersion);
+        AlarmTask.Logger.d("Database updated from " + oldVersion + " to " + newVersion);
         final String deleteSql = "DROP TABLE IF EXISTS " + TABLE_NAME;
         sqLiteDatabase.execSQL(deleteSql);
         onCreate(sqLiteDatabase);

@@ -7,13 +7,12 @@ import android.content.Intent;
 import android.os.Build;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.lvdy.android.alarmtask.Logger;
 import com.lvdy.android.alarmtask.database.DataManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.content.Context.ALARM_SERVICE;
@@ -29,7 +28,7 @@ class AlarmStateManager {
 
     static boolean unregisterInstance(Context context, Alarm instance) {
         if (DataManager.getInstance(context.getApplicationContext()).deleteAlarm(instance)) {
-            cancelScheduledInstanceStateChange(context, instance);
+            return cancelScheduledInstanceStateChange(context, instance);
         }
 
         return false;
@@ -86,19 +85,22 @@ class AlarmStateManager {
             am.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
         }
 
-        Logger.d("设定闹钟:" + convertMills2UTC(timeInMillis) + "id=" + instance.getId());
+        AlarmTask.Logger.d("设定闹钟:" + convertMills2UTC(timeInMillis) + "id=" + instance.getId());
     }
 
     private static boolean cancelScheduledInstanceStateChange(Context context, Alarm instance) {
+        if (instance.getId() == null) {
+            throw new NullPointerException("闹钟id为空");
+        }
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, instance.getId().hashCode(),
                 createStateChangeIntent(context, instance), PendingIntent.FLAG_NO_CREATE);
-
         if (pendingIntent != null) {
             AlarmManager am = (AlarmManager) context.getSystemService(ALARM_SERVICE);
             am.cancel(pendingIntent);
             pendingIntent.cancel();
 
-            Logger.d("取消闹钟:" + convertMills2UTC(instance.getTime()) + "id=" + instance.getId());
+            AlarmTask.Logger.d("取消闹钟:" + convertMills2UTC(instance.getTime()) + "id=" + instance.getId());
             return true;
         }
 
@@ -112,5 +114,15 @@ class AlarmStateManager {
     private static SimpleDateFormat datefromat = new SimpleDateFormat("yyyy年MM月dd日HH时mm分ss秒", Locale.CHINA);
     private static String convertMills2UTC(long millis) {
         return datefromat.format(new Date(millis));
+    }
+
+    public static void unregisterAllInstance(Context context) {
+        List<Alarm> alarmList = DataManager.getInstance(context.getApplicationContext()).loadAll();
+        for (Alarm alarm : alarmList) {
+            final boolean result = unregisterInstance(context, alarm);
+            if (!result) {
+                AlarmTask.Logger.d("闹钟取消失败:" + alarm.getId());
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.lvdy.android.alarmtask.alarm;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,11 +18,10 @@ public class AlarmTask {
      *
      * @param context
      * @param alarm 闹钟实例
-     * @return 添加结果，返回true表示闹钟设置成功
+     * @return 添加结果，返回null表示闹钟设置失败
      */
-    public boolean addAlarm(Context context, Alarm alarm) {
-        setupAlarmInstance(context, alarm, System.currentTimeMillis());
-        return true;
+    public Alarm addAlarm(Context context, Alarm alarm) {
+        return setupAlarmInstance(context, alarm, System.currentTimeMillis());
     }
 
     /**
@@ -29,19 +29,19 @@ public class AlarmTask {
      *
      * @param context
      * @param alarmList 闹钟实例列表
-     * @return 添加失败的闹钟
+     * @return 添加成功的闹钟
      */
     public List<Alarm> addAlarmList(Context context, List<Alarm> alarmList) {
         final long currMillis = System.currentTimeMillis();
-        List<Alarm> missedAlarms = new ArrayList<>(alarmList.size());
+        List<Alarm> setedAlarms = new ArrayList<>(alarmList.size());
         for (Alarm instance : alarmList) {
-            final boolean success = setupAlarmInstance(context, instance, currMillis);
-            if (!success) {
-                missedAlarms.add(instance);
+            final Alarm alarm = setupAlarmInstance(context, instance, currMillis);
+            if (alarm != null) {
+                setedAlarms.add(alarm);
             }
         }
 
-        return missedAlarms;
+        return setedAlarms;
     }
 
     /**
@@ -80,15 +80,32 @@ public class AlarmTask {
      * @param context
      * @param alarm 闹钟实例
      * @param currentMillis 当前时间毫秒数
-     * @return 返回true表示设置成功
+     * @return 返回null表示设置失败
      */
-    private boolean setupAlarmInstance(Context context, Alarm alarm, long currentMillis) {
+    private Alarm setupAlarmInstance(Context context, Alarm alarm, long currentMillis) {
         Alarm newInstance = alarm.createInstanceAfter(Calendar.getInstance(Locale.CHINA));
         if (!alarm.isPeriodic() && newInstance.getTime() <= currentMillis) {
-            return false;
+            return null;
         }
 
         AlarmStateManager.registerInstance(context, newInstance);
-        return true;
+        return newInstance;
+    }
+
+    public void cancelAllAlarms(Context context) {
+        AlarmStateManager.unregisterAllInstance(context);
+    }
+
+    public static class Logger {
+        public static final boolean DEBUG = true;
+        private static String LOG_TAG = "AlarmTask";
+        public static void setTag(String tag) {
+            LOG_TAG = tag;
+        }
+        public static void d(String s) {
+            if (DEBUG) {
+                Log.d(LOG_TAG, s);
+            }
+        }
     }
 }
